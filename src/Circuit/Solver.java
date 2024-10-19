@@ -9,8 +9,37 @@ import java.util.*;
 
 public class Solver {
 
-    public static void test(List<Branch> branches, Graph circuitGraph) {
+
+    public static void voltageAndGnd(List<Branch> branches, Graph circuitGraph) {
         boolean found = false;
+
+
+        //Special case if it has no junctions:
+        if(circuitGraph.numberOfEquations == 0) {
+            //Assume its valid.. eh...
+            double current = 0.0, resistance = 0.0, voltage = 0.0;
+            for(int i = 1; i < 5; i++) {
+                Element element = getElementBetweenID(i,(i+1 > 4 ? 1 : i+1),circuitGraph.getElements());
+                if(element.getType() == ElementType.CURRENT_SOURCE) {
+                    current += element.getValue();
+                } else if(element.getType() == ElementType.RESISTOR) {
+                    resistance += element.getValue();
+                } else if(element.getType() == ElementType.VOLTAGE_SOURCE) {
+                    voltage += element.getValue();
+                }
+            }
+            if(current != 0.0) {
+                System.out.println("Circuit has no junctions and the current is: " + current);
+            } else {
+                if(resistance != 0.0) {
+                    current = voltage / resistance;
+                    System.out.println("Circuit has no junctions and the current is: " + current);
+                } else {
+                    System.out.println("Circuit without any resistance!");
+                }
+            }
+            return;
+        }
 
 
         //Todo: if there are more ideal branches ground the common node.
@@ -51,7 +80,6 @@ public class Solver {
                             if(toChange.getStart().getId() == branch.getEnd().getId() && toChange.getStart().getPotential() == Double.MAX_VALUE) {
                                 toChange.getStart().setPotential(branch.getEnd().getPotential());
                                 circuitGraph.numberOfEquations--;
-
                             }
                             if(toChange.getEnd().getId() == branch.getEnd().getId() && toChange.getEnd().getPotential() == Double.MAX_VALUE) {
                                 toChange.getEnd().setPotential(branch.getEnd().getPotential());
@@ -91,7 +119,7 @@ public class Solver {
                 circuitGraph.numberOfEquations = circuitGraph.numberOfEquations - v + 1;
             }
         });
-        test2(branches,circuitGraph);
+        createEquations(branches,circuitGraph);
     }
 
     private static boolean containsElement(Branch branch, ElementType type) {
@@ -101,6 +129,15 @@ public class Solver {
             }
         }
         return true;
+    }
+
+    private static Element getElementBetweenID(int first, int second, List<Element> elements) {
+        for(Element element : elements) {
+            if(element.getStart().getId() == first && element.getEnd().getId() == second) {
+                return element;
+            }
+        }
+        return null;
     }
 
     private static double getConductance(Node start, Node end, List<Branch> branches) {
@@ -150,7 +187,7 @@ public class Solver {
         return result;
     }
 
-    public static void test2(List<Branch> branches, Graph circuitGraph) {
+    public static void createEquations(List<Branch> branches, Graph circuitGraph) {
         if(circuitGraph.numberOfEquations - 1 == 0) {
             System.out.println("Already known voltages...");
             return;

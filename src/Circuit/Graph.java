@@ -8,6 +8,7 @@ import Elements.Wire;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Graph {
 
@@ -28,6 +29,10 @@ public class Graph {
         this.junctions = new ArrayList<>();
         this.elements = elements;
         this.adjacencyList = new HashMap<>();
+    }
+
+    public List<Element> getElements() {
+        return elements;
     }
 
     public void addEdge(Node start, Node end) {
@@ -82,7 +87,16 @@ public class Graph {
                             branch.setResistance(branch.getResistance() + element.getValue());
                         }
                     }
-                    branches.add(branch);
+                    boolean add = true;
+                    for(Branch toCheck : branches) {
+                        if (branch.getStart().getId() == toCheck.getStart().getId() && branch.getEnd().getId() == toCheck.getEnd().getId()
+                                && branch.getStart().getId() == toCheck.getEnd().getId() && branch.getEnd().getId() == toCheck.getStart().getId()
+                                && (branch.getResistorCount() > 0 || branch.getVoltageCount() > 0 || branch.getCurrentCount() > 0)) {
+                            add = false;
+                            break;
+                        }
+                    }
+                    if(add) branches.add(branch);
                     toAdd.clear();
                 }
             }
@@ -131,12 +145,16 @@ public class Graph {
     }
 
     //TODO: find a wire loop and stop the program.
-    public boolean hasWireLoop() {
-        for(Branch branch : branches) {
-            //FML... :(
+    public boolean isValidCircuit() {
+        //If it has an element that is not connected to anything:
+        for(Map.Entry<Node, List<Node>> entry : adjacencyList.entrySet()) {
+            if(entry.getValue().size() < 2) return false;
         }
+        //If it has a loop with no resistance:
 
-        return false;
+
+
+        return true;
     }
 
     public void printAdjList() {

@@ -16,7 +16,6 @@ public class Branch {
 
     private double current;
 
-
     public Branch() {
         this.elements = new ArrayList<>();
         resistorCount = wireCount = voltageCount = currentCount = 0;
